@@ -32,7 +32,14 @@ def config_page():
 
     with ui.row():
         ui.label("Upload PO File")
-        ui.upload(on_upload=handle_po_upload, multiple=False, auto_upload=True, accept=".xlsx")
+        # allow only a single Excel file to be uploaded
+        ui.upload(
+            on_upload=handle_po_upload,
+            multiple=False,
+            auto_upload=True,
+            file_filter="*.xlsx",
+            max_files=1,
+        )
 
     def save_configuration() -> None:
         config["newitems_file"] = new_items_select.value
