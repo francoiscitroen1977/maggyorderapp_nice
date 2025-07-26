@@ -1,6 +1,6 @@
 # Maggys Order App
 
-Maggys Order App is a Streamlit application for matching product orders and preparing item files for import. The app reads purchase order (PO) spreadsheets and new item CSV files, matches items using UPC codes, and lets you review or edit the results.
+Maggys Order App is a NiceGUI application for matching product orders and preparing item files for import. The app reads purchase order (PO) spreadsheets and new item CSV files, matches items using UPC codes, and lets you review or edit the results.
 
 ## Requirements
 
@@ -33,8 +33,10 @@ Maggys Order App is a Streamlit application for matching product orders and prep
 3. **Run the app**
 
    ```bash
-   streamlit run app.py
+   python app.py
    ```
+
+   The NiceGUI server will start on `http://localhost:8080`. Open this URL in your browser to use the application.
 
 ## Using the App
 

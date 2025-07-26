@@ -1,38 +1,35 @@
 # app.py
-import streamlit as st
+"""Main entry point for the NiceGUI application."""
+
+from nicegui import ui
 from frontend import (
     config_page,
     main_page,
-    configure_matching,
     process_configured_matches,
 )
 
-# Expand the page layout so wide tables utilize more horizontal space
-st.set_page_config(page_title="Maggys Order App", layout="wide")
 
-# Initialize session state for page navigation
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "Configure matching"
+@ui.page("/")
+def home() -> None:
+    """Landing page that links to the main views."""
+    ui.link("Configure matching", "/configure")
+    ui.link("Pre-process matching", "/preprocess")
+    ui.link("Process configured matches", "/process")
 
-# Redirect to a different page if requested
-if "redirect_to_page" in st.session_state:
-    st.session_state.current_page = st.session_state.redirect_to_page
-    del st.session_state.redirect_to_page
 
-st.sidebar.title("Navigation")
-page = st.sidebar.radio(
-    "Go to",
-    [
-        "Configure matching",
-        "Pre-process matching",
-        "Process configured matches",
-    ],
-    key="current_page",
-)
+@ui.page("/configure")
+def configure() -> None:
+    config_page.config_page()
 
-if page == "Pre-process matching":
+
+@ui.page("/preprocess")
+def preprocess() -> None:
     main_page.main_page()
-elif page == "Configure matching":
-    configure_matching.configure_matching_page()
-else:
+
+
+@ui.page("/process")
+def process() -> None:
     process_configured_matches.process_configured_matches_page()
+
+
+ui.run(title="Maggys Order App")
