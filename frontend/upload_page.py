@@ -12,4 +12,11 @@ def upload_page() -> None:
             shutil.copyfileobj(e.content, f)
         ui.notify(f"File {e.name} uploaded successfully!")
 
-    ui.upload(on_upload=handle_upload, multiple=False, auto_upload=True, accept=".xlsx")
+    # single Excel file upload widget
+    ui.upload(
+        on_upload=handle_upload,
+        multiple=False,
+        auto_upload=True,
+        file_filter="*.xlsx",
+        max_files=1,
+    )
