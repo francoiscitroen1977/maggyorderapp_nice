@@ -1,32 +1,30 @@
 # frontend/main_page.py
-import streamlit as st
+"""Main processing page implemented with NiceGUI."""
+
+from nicegui import ui
 from config import config_manager, paths
 from services import file_processing, file_matching
 import pandas as pd
-import time
 
 def main_page():
-    st.header("Process Orders")
-
     config = config_manager.load_config()
-
-    st.subheader("Selected Files")
 
     new_items_file = config.get("newitems_file")
     if new_items_file:
-        st.write(f"New Items File: {new_items_file}")
+        ui.label(f"New Items File: {new_items_file}")
     else:
-        st.write("No New Items File selected.")
+        ui.label("No New Items File selected.")
 
     po_files = config.get("po_files", [])
     if po_files:
-        st.write("PO Files:")
         for po in po_files:
-            st.write(f"- {po}")
+            ui.label(f"PO File: {po}")
     else:
-        st.write("No PO Files selected.")
+        ui.label("No PO Files selected.")
 
-    if st.button("Start Matching"):
+    table_container = ui.element()
+
+    def start_matching() -> None:
         matched_list = []
         for po_filename in po_files:
             po_path = paths.UPLOADED_PO_DIR / po_filename
@@ -34,30 +32,29 @@ def main_page():
             matched_items = file_matching.match_items(po_path, new_items_path, config["po_qty_column"])
             output_filename = f"matched_{po_filename.replace('.xlsx', '')}.csv"
             file_processing.save_matched_items(matched_items, output_filename)
-            st.success(f"Matched items saved to Newfiletemp/{output_filename}")
+            ui.notify(f"Matched items saved to Newfiletemp/{output_filename}")
             matched_list.append(matched_items)
 
         if matched_list:
-            st.session_state["matched_df"] = pd.concat(matched_list, ignore_index=True)
+            matched_df = pd.concat(matched_list, ignore_index=True)
+            show_table(matched_df)
         else:
-            st.session_state["matched_df"] = pd.DataFrame()
+            ui.notify("No matched items")
 
-    matched_df = st.session_state.get("matched_df")
-    if isinstance(matched_df, pd.DataFrame) and not matched_df.empty:
-        st.subheader("Matched Items")
-        selected_indices = []
-        for idx, row in matched_df.iterrows():
-            label_parts = [str(row[col]) for col in matched_df.columns[:2]]
-            if st.checkbox(" - ".join(label_parts), key=f"sel_{idx}"):
-                selected_indices.append(idx)
+    def show_table(df: pd.DataFrame) -> None:
+        table_container.clear()
+        table = table_container.table.from_pandas(df, selection="multiple")
 
-        if st.button("Create new file"):
-            if selected_indices:
-                export_df = matched_df.loc[selected_indices]
+        def create_file() -> None:
+            selected_rows = [df.iloc[i] for i in table.selected]
+            if selected_rows:
+                export_df = pd.DataFrame(selected_rows)
                 output_path = file_processing.save_selected_items(export_df, new_items_file)
-                st.success(f"Selected items saved to Newfiletemp/{output_path.name}")
-                time.sleep(3)
-                st.session_state.redirect_to_page = "Process configured matches"
-                st.rerun()
+                ui.notify(f"Selected items saved to Newfiletemp/{output_path.name}")
+                ui.navigate("/process")
             else:
-                st.warning("No items selected.")
+                ui.notify("No items selected")
+
+        ui.button("Create new file", on_click=create_file)
+
+    ui.button("Start Matching", on_click=start_matching)
